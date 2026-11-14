@@ -6,7 +6,8 @@ const FILES = {
   android: 'tangram-android-arm64.apk',
   ios: 'tangram-ios-arm64-unsigned.ipa',
 };
-const BASE = 'https://github.com/3477856804/tangram-agent-releases/releases/download/v0.0.3/';
+// latest 永久指向 CI 最新发布产物,发版无需改官网
+const BASE = 'https://github.com/3477856804/tangram-agent-releases/releases/latest/download/';
 const MIRRORS = ['https://gh-proxy.com/', 'https://ghproxy.net/'];
 
 export const onRequestGet = async (context) => {
