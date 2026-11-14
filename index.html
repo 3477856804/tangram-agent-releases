@@ -1,899 +1,321 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="color-scheme" content="dark light">
-<title>檀阁瑞木 Tangram — 会成长的数字生命</title>
-<meta name="description" content="檀阁瑞木 Tangram —— 七块基本图形，无穷种拼法。用 Harness 把抽象的 Model 拼装、落地成切实可见的成果。本地 GGUF 推理、自主 Agent 引擎、QQ/微信/Telegram/WhatsApp 四平台接入、全平台 OTA 自动更新、22 种 edge-tts 音色，离线也能陪你。">
-<meta name="theme-color" content="#141618">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cg transform='translate(16 16) scale(.84) translate(-16 -16)'%3E%3Crect x='0' y='0' width='16' height='16' fill='%23FFFFFF'/%3E%3Cg fill='%23888888'%3E%3Cpath d='M16 0 L32 0 L16 16 Z'/%3E%3Cpath d='M32 0 L32 16 L16 16 Z'/%3E%3Cpath d='M32 16 L32 32 L16 16 Z'/%3E%3Cpath d='M32 32 L16 32 L16 16 Z'/%3E%3Cpath d='M16 32 L0 32 L16 16 Z'/%3E%3Cpath d='M0 32 L0 16 L16 16 Z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E">
+<meta name="color-scheme" content="light dark">
+<title>檀阁瑞木 TANGRAM — 一台装在你自己电脑里的 AI 工作台</title>
+<meta name="description" content="檀阁瑞木 TANGRAM 是一个在本机运行的 AI 工作台：本地 GGUF 推理、真实 Linux 沙箱、上下文与持久记忆，覆盖 Windows / macOS / Linux / Android / iOS 五个平台。模型和数据都留在你的设备上。">
+<meta name="theme-color" content="#f5f2ea">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23f5f2ea'/%3E%3Cpath d='M4 4h12v12H4z' fill='%231a1917'/%3E%3Cpath d='M16 4l12 12H16z' fill='%23a4472b'/%3E%3Cpath d='M4 16l12 12H4z' fill='%23a4472b' opacity='.55'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="styles.css">
 <script>
-  /* 主题预置：避免首屏闪烁 */
+  /* 主题预置，避免首屏闪烁；默认浅色纸面，尊重系统偏好 */
   (function () {
     try {
-      var t = localStorage.getItem('xl-theme');
+      var t = localStorage.getItem('tga-theme');
       if (t !== 'dark' && t !== 'light') {
-        t = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
       }
       document.documentElement.setAttribute('data-theme', t);
     } catch (e) {}
-    document.documentElement.classList.add('js');
   })();
 </script>
 </head>
-
 <body>
-<div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
-<div class="bg" aria-hidden="true"><div class="bg-glow"></div><div class="bg-grid"></div></div>
 
-<div class="content">
-  <a class="skip" href="#main">跳到主要内容</a>
+<a class="skip" href="#main">跳到正文</a>
 
-  <!-- ===================== 顶部导航 ===================== -->
-  <header class="header">
-    <nav class="nav" id="nav" aria-label="主导航">
-      <div class="nav-inner">
-        <a class="brand" href="#top" aria-label="Tangram 檀阁瑞木 首页">
-        <span class="brand-mark" aria-hidden="true" style="display: flex; align-items: center; justify-content: center;">
-         <img src="assets/t.svg" alt="" width="32" height="32" style="filter: var(--logo-filter, invert(1));">
-  </span>
-  <span class="brand-text"><strong>TANGRAM</strong><em>檀阁瑞木</em></span>
-</a>
-        <ul class="nav-links" id="nav-menu">
-          <li><a href="#manifesto">理念</a></li>
-          <li><a href="#news">动态</a></li>
-          <li><a href="#features">功能</a></li>
-          <li><a href="#channels">通道</a></li>
-          <li><a href="#skills-lib">扩展</a></li>
-          <li><a href="#studio">工作台</a></li>
-          <li><a href="#arch">架构</a></li>
-          <li><a href="#download">下载</a></li>
-        </ul>
-
-        <div class="nav-actions">
-          <button class="cmd-hint ripple" id="cmdkOpen" type="button" aria-label="打开命令面板">
-            <kbd>⌘</kbd><kbd>K</kbd>
-          </button>
-          <button class="icon-btn theme-toggle" id="themeToggle" type="button" aria-label="切换主题" aria-pressed="false">
-            <svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.4"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5 5l1.7 1.7M17.3 17.3L19 19M19 5l-1.7 1.7M6.7 17.3L5 19"/></svg>
-            <svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.4 14.2A8.3 8.3 0 019.8 3.6a8.3 8.3 0 1010.6 10.6z"/></svg>
-          </button>
-          <button class="nav-toggle" id="navToggle" type="button" aria-label="打开导航菜单" aria-expanded="false" aria-controls="nav-menu">
-            <span class="bars" aria-hidden="true"></span>
-          </button>
-        </div>
-      </div>
+<!-- ============ 顶栏 ============ -->
+<header class="site-head">
+  <div class="wrap head-inner">
+    <a class="brand" href="#top" aria-label="檀阁瑞木 TANGRAM 首页">
+      <img class="brand-mark" src="assets/t.svg" alt="" width="30" height="30">
+      <span class="brand-name">檀阁瑞木<span class="brand-latin">TANGRAM</span></span>
+    </a>
+    <nav class="head-nav" id="nav" aria-label="主导航">
+      <a href="#about">写在前面</a>
+      <a href="#capabilities">它能做什么</a>
+      <a href="#download">下载</a>
+      <a href="#faq">常见问题</a>
     </nav>
-  </header>
-
-  <main id="main">
-
-    <!-- ===================== 首屏 ===================== -->
-    <section class="hero" id="top" aria-label="首屏介绍">
-      <div class="hero-inner">
-        <div class="hero-badge reveal" style="--i:0">
-          <span class="pulse-dot" aria-hidden="true"></span>
-          <span class="vtag">最新版</span>
-          <span>五平台构建 · 全平台 OTA 已上线</span>
-        </div>
-
-        <div class="hero-avatar-wrap reveal" style="--i:1">
-          <span class="hero-ring" aria-hidden="true"></span>
-          <span class="hero-ring hero-ring--2" aria-hidden="true"></span>
-          <img class="hero-avatar" src="assets/t.svg" alt="檀阁瑞木" width="118" height="118">
-        </div>
-
-        <h1 class="reveal" style="--i:2">
-          <span>会成长的</span>
-          <span class="grad">数字生命</span>
-        </h1>
-
-        <p class="hero-sub reveal" style="--i:3">
-          住在你桌面与手机里的 AI Agent：本地 GGUF 推理不花钱、不上云，<br>
-          QQ / 微信 / Telegram / WhatsApp 随时找她，产物、痕迹、记忆全留在本机。<br>
-          试试对她说：<span class="typed" id="typedText"></span>
-        </p>
-
-        <div class="hero-actions reveal" style="--i:4">
-          <a href="#download" class="btn btn-primary ripple">立即下载</a>
-          <a href="#studio" class="btn btn-ghost ripple">试用工作台</a>
-        </div>
-
-        <!-- 应用界面预览 -->
-        <div class="preview card hud reveal" style="--i:5" role="img" aria-label="檀阁瑞木应用界面预览">
-          <div class="window-bar" aria-hidden="true">
-            <div class="window-dots"><i></i><i></i><i></i></div>
-            <div class="window-title">tangram — 聊天</div>
-          </div>
-          <div class="window-body">
-            <div class="window-side" aria-hidden="true">
-              <div class="window-nav active"><span class="dot"></span>对话</div>
-              <div class="window-nav"><span class="dot"></span>智能体</div>
-              <div class="window-nav"><span class="dot"></span>通道</div>
-              <div class="window-nav"><span class="dot"></span>作品</div>
-              <div class="window-nav"><span class="dot"></span>图谱</div>
-              <div class="window-nav"><span class="dot"></span>沙箱</div>
-            </div>
-            <div class="window-content">
-              <div class="bubble bubble--user" style="--b:0">帮我把这份销售数据整理成周报</div>
-              <div class="bubble bubble--ai" style="--b:1">好的，我在沙箱里跑了一遍统计，生成了 report.html 和 summary.md，已放进「我的作品」。</div>
-              <div class="bubble bubble--user" style="--b:2">发到 QQ 上给我</div>
-              <div class="bubble bubble--ai" style="--b:3">已通过 QQ 通道发送，附件是你上周常问的同比口径版本。</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="hero-stats">
-          <div class="stat card hud reveal" style="--i:0"><div class="num grad" data-count="5">0</div><div class="label">支持平台</div></div>
-          <div class="stat card hud reveal" style="--i:1"><div class="num grad" data-count="24">0</div><div class="label">前后端契约</div></div>
-          <div class="stat card hud reveal" style="--i:2"><div class="num grad" data-count="9">0</div><div class="label">IM 适配器</div></div>
-          <div class="stat card hud reveal" style="--i:3"><div class="num grad" data-count="22">0</div><div class="label">内置音色</div></div>
-        </div>
-        <a class="scroll-cue" href="#news" aria-label="向下滚动，查看核心功能">
-          <span class="scroll-cue-label">SCROLL</span>
-          <span class="scroll-cue-line" aria-hidden="true"></span>
-        </a>
-      </div>
-    </section>
-
-    <!-- ===================== 品牌主张 ===================== -->
-    <section class="section manifesto" id="manifesto" aria-labelledby="manifesto-title">
-      <div class="container">
-        <div class="manifesto-card card hud reveal">
-          <div class="manifesto-head">
-            <span class="eyebrow"><i>00</i>Brand · 檀阁瑞木</span>
-            <h2 class="manifesto-title" id="manifesto-title">
-              <span class="manifesto-lead">用几块<span class="grad">基本图形</span>，拼出无限可能</span>
-              <span class="manifesto-sub">用 <em>Harness</em> 把抽象的 <em>Model</em> 拼装、落地成切实可见的成果</span>
-            </h2>
-            <p class="manifesto-note">
-              <b>檀阁瑞木 · TANGRAM</b> —— 檀为木，阁为构，瑞木为材。<br>
-              七巧板以七块基本图形拼出无穷种可能；正如模型本身不解决任何问题，<br>
-              被 Harness 拼装、接进真实工作流并交付到用户手上的那一刻，它才算成立。<br>
-              <span class="manifesto-tag">万物皆插件，让 agent 拥有无限可能。</span>
-            </p>
-          </div>
-
-          <ol class="pipeline">
-            <li class="pipe-step">
-              <span class="pipe-idx">01</span>
-              <span class="pipe-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h8l-4-6.5z"/><rect x="13" y="12" width="8" height="8"/><path d="M14 3l7 5h-7z"/></svg></span>
-              <h3>Basic Pieces</h3>
-              <p>几块基础图形：抽象的想法、模型与能力</p>
-            </li>
-            <li class="pipe-link" aria-hidden="true"><span class="pipe-line"><i></i></span></li>
-            <li class="pipe-step">
-              <span class="pipe-idx">02</span>
-              <span class="pipe-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4H7a2 2 0 00-2 2v12a2 2 0 002 2h2M15 4h2a2 2 0 012 2v12a2 2 0 01-2 2h-2"/><circle cx="12" cy="12" r="2.3"/></svg></span>
-              <h3>Harness</h3>
-              <p>把能力接进可交付的真实工作流</p>
-            </li>
-            <li class="pipe-link" aria-hidden="true"><span class="pipe-line"><i></i></span></li>
-            <li class="pipe-step">
-              <span class="pipe-idx">03</span>
-              <span class="pipe-glyph pipe-glyph--lg" aria-hidden="true"><svg viewBox="0 0 32 32" aria-hidden="true"><g transform="translate(16 16) scale(.86) translate(-16 -16)"><rect x="0" y="0" width="16" height="16" fill="currentColor"/><g fill="currentColor" opacity=".42"><path d="M16 0 L32 0 L16 16 Z"/><path d="M32 0 L32 16 L16 16 Z"/><path d="M32 16 L32 32 L16 16 Z"/><path d="M32 32 L16 32 L16 16 Z"/><path d="M16 32 L0 32 L16 16 Z"/><path d="M0 32 L0 16 L16 16 Z"/></g></g></svg></span>
-              <h3>Possibilities</h3>
-              <p>看得见、摸得着的成果，无限种拼法</p>
-            </li>
-          </ol>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===================== 新动态 ===================== -->
-    <section class="section" id="news" aria-labelledby="news-title">
-      <div class="container">
-        <div class="section-head reveal" style="--i:0">
-          <span class="eyebrow"><i>01</i>What's New</span>
-          <h2 class="section-title" id="news-title">这一版，都是真的</h2>
-          <p class="section-desc">这一版把「演示」换成了「交付」：每一条都能在 App 里点到。</p>
-        </div>
-
-        <div class="grid feature-grid">
-          <div class="reveal" style="--i:0">
-            <article class="feature card hud">
-              <div class="feature-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 11-2.6-6.4"/><path d="M21 3v6h-6"/></svg></div>
-              <h3>全平台 OTA 自动更新</h3>
-              <p>App 内检查 GitHub Releases 最新版，分片并行下载，SHA256 清单 + 发布私钥 RSA 签名双重校验，不过签名拒绝安装。Android 调起系统安装器覆盖安装，桌面端落盘更新脚本自动替换重启。</p>
-            </article>
-          </div>
-          <div class="reveal" style="--i:1">
-            <article class="feature card hud">
-              <div class="feature-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5L10.5 4.5V11.5H3V5.5M11.5 4.3L21 3V11.5H11.5V4.3M3 12.5H10.5V19.5L3 18.5V12.5M11.5 12.5H21V21L11.5 19.7V12.5Z"/></svg></div>
-              <h3>Windows 单文件便携版</h3>
-              <p>49 MB 一个 .exe，双击即运行免安装。内置自解压加载器首次运行释放到 %LOCALAPPDATA%，之后秒开；与安卓发布同一把 RSA 私钥完成 Authenticode 签名。</p>
-            </article>
-          </div>
-          <div class="reveal" style="--i:2">
-            <article class="feature card hud">
-              <div class="feature-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
-              <h3>IM 通道真实打通</h3>
-              <p>QQ、微信、Telegram、WhatsApp 四大平台共 9 个适配器：官方 OpenAPI、扫码桥接、协议直连多路可选，App 内扫码即可登录，消息双向收发带网关状态监控与看门狗。</p>
-            </article>
-          </div>
-          <div class="reveal" style="--i:3">
-            <article class="feature card hud">
-              <div class="feature-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 9h6v6H9z"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg></div>
-              <h3>插件社区上线</h3>
-              <p>插件 / 技能 / MCP 三类扩展统一在插件页发现、安装、卸载，本地池一目了然，启用停用直接映射到后端真实命令。</p>
-            </article>
-          </div>
-          <div class="reveal" style="--i:4">
-            <article class="feature card hud">
-              <div class="feature-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
-              <h3>沙箱执行环境</h3>
-              <p>内置 Debian 沙箱、SSH 远端沙箱、工作区沙箱三选一，CPU / 内存 / 超时隔离配额可编辑落盘，Agent 跑代码不再裸奔。</p>
-            </article>
-          </div>
-          <div class="reveal" style="--i:5">
-            <article class="feature card hud">
-              <div class="feature-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
-              <h3>公告与品牌焕新</h3>
-              <p>App 内接入官网公告 feed，更新日志直达；全套 UI 按 TGA 设计系统重做，深浅双主题，15 个功能页统一视觉语言。</p>
-            </article>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===================== 核心功能 ===================== -->
-    <section class="section" id="features" aria-labelledby="features-title">
-      <div class="container">
-        <div class="section-head reveal" style="--i:0">
-          <span class="eyebrow"><i>02</i>Core Features</span>
-          <h2 class="section-title" id="features-title">不只是桌宠，是会干活的生命</h2>
-          <p class="section-desc">从本地推理到沙箱执行，从工作痕迹到知识图谱，檀阁瑞木拥有一条完整的「干活—留痕—成长」闭环。</p>
-        </div>
-
-        <div class="grid feature-grid">
-          <div class="reveal" style="--i:0">
-            <article class="feature card hud">
-              <div class="feature-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 3.5"/></svg></div>
-              <h3>本地 GGUF 推理</h3>
-              <p>GGUF 格式模型本地运行，纯 CPU 也能跑。模型商店内置搜索与仓库探测，按你的磁盘和内存推荐合适量化，下载失败自动重试。</p>
-            </article>
-          </div>
-          <div class="reveal" style="--i:1">
-            <article class="feature card hud">
-              <div class="feature-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-              <h3>自主 Agent 引擎</h3>
-              <p>任务规划 → 工具调用 → 结果观察 → 迭代执行。每一步都记录为「工作痕迹」，可回放、可追责，不是黑盒。</p>
-            </article>
-          </div>
-          <div class="reveal" style="--i:2">
-            <article class="feature card hud">
-              <div class="feature-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg></div>
-              <h3>我的作品</h3>
-              <p>扫描 Agent 真实写文件的工作区，把含产物的目录自动识别为网站 / App / 脚本。网站直接用 WebView 打开你刚生成的页面。</p>
-            </article>
-          </div>
-          <div class="reveal" style="--i:3">
-            <article class="feature card hud">
-              <div class="feature-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="6" cy="6" r="2.5"/><path d="M8 7.5h7.5M6 8.5v7M8.5 16.5l7-7"/></svg></div>
-              <h3>知识图谱</h3>
-              <p>基于真实对话轮次做词共现统计，节点、连线全部来自你的聊天内容，3D 球面排布可旋转查看。她记得你们聊过什么。</p>
-            </article>
-          </div>
-          <div class="reveal" style="--i:4">
-            <article class="feature card hud">
-              <div class="feature-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8l3 3-3 3M12 16h5"/></svg></div>
-              <h3>沙箱执行</h3>
-              <p>内置 Debian 沙箱 / SSH 远端沙箱 / 工作区沙箱三种环境，配额与超限动作可调可落盘，Agent 的每次执行都在笼子里。</p>
-            </article>
-          </div>
-          <div class="reveal" style="--i:5">
-            <article class="feature card hud">
-              <div class="feature-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg></div>
-              <h3>人格系统</h3>
-              <p>多套人格独立命名、独立头像（相册选图即换），默认内置鹿标形象，一键恢复。切换人格即切换说话方式与音色绑定。</p>
-            </article>
-          </div>
-          <div class="reveal" style="--i:6">
-            <article class="feature card hud">
-              <div class="feature-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4"/></svg></div>
-              <h3>22 种中文音色</h3>
-              <p>edge-tts 全量内置 22 个 Neural 音色，语速、音调逐人格可调，聊天结束自动播报，可随时打断。</p>
-            </article>
-          </div>
-          <div class="reveal" style="--i:7">
-            <article class="feature card hud">
-              <div class="feature-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21l-8-4.5V7l8 4.5L20 7v9.5L12 21z"/><path d="M12 12V3M8 5l4-2 4 2"/></svg></div>
-              <h3>知识蒸馏</h3>
-              <p>教师模型把优质对话蒸馏成训练素材（6 组蒸馏契约），为后续微调闭环铺路——她的成长有数据，不是玄学。</p>
-            </article>
-          </div>
-          <div class="reveal" style="--i:8">
-            <article class="feature card hud">
-              <div class="feature-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></svg></div>
-              <h3>定时任务</h3>
-              <p>后台调度器按点干活：提醒、巡检、自动跑批。任务在 App 内可视化管理，执行结果进工作痕迹。</p>
-            </article>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===================== 通道 ===================== -->
-    <section class="section" id="channels" aria-labelledby="channels-title">
-      <div class="container">
-        <div class="section-head reveal" style="--i:0">
-          <span class="eyebrow"><i>03</i>Channels · im/</span>
-          <h2 class="section-title" id="channels-title">四个平台，九条路</h2>
-          <p class="section-desc">同一个她，住在你的每个聊天软件里。App 内扫码授权，网关状态与看门狗实时监控，掉线自动拉起。</p>
-        </div>
-
-        <div class="grid skill-grid">
-          <div class="reveal" style="--i:0">
-            <article class="skill-cat card hud">
-              <div class="skill-cat-head"><span class="skill-cat-idx">QQ</span><h3>3 个适配器</h3></div>
-              <ul class="skill-cat-tags">
-                <li>官方 OpenAPI</li><li>OneBot (NapCat)</li><li>扫码登录</li>
-              </ul>
-            </article>
-          </div>
-          <div class="reveal" style="--i:1">
-            <article class="skill-cat card hud">
-              <div class="skill-cat-head"><span class="skill-cat-idx">微信</span><h3>3 个适配器</h3></div>
-              <ul class="skill-cat-tags">
-                <li>ilink 扫码</li><li>公众号 API</li><li>协议直连</li>
-              </ul>
-            </article>
-          </div>
-          <div class="reveal" style="--i:2">
-            <article class="skill-cat card hud">
-              <div class="skill-cat-head"><span class="skill-cat-idx">TG</span><h3>Bot API</h3></div>
-              <ul class="skill-cat-tags">
-                <li>Bot Token</li><li>群聊指令</li><li>媒体收发</li>
-              </ul>
-            </article>
-          </div>
-          <div class="reveal" style="--i:3">
-            <article class="skill-cat card hud">
-              <div class="skill-cat-head"><span class="skill-cat-idx">WA</span><h3>Baileys 桥</h3></div>
-              <ul class="skill-cat-tags">
-                <li>手机扫码</li><li>会话同步</li><li>Node 桥接</li>
-              </ul>
-            </article>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===================== 扩展体系 ===================== -->
-    <section class="section" id="skills-lib" aria-labelledby="skills-lib-title">
-      <div class="container">
-        <div class="section-head reveal" style="--i:0">
-          <span class="eyebrow"><i>04</i>Extensibility</span>
-          <h2 class="section-title" id="skills-lib-title">万物皆插件的三层扩展</h2>
-          <p class="section-desc">技能（Skill）、插件（Plugin）、MCP 工具三类扩展共用一个注册中心，在插件页统一发现、安装、启停。</p>
-        </div>
-
-        <div class="grid skill-grid">
-          <div class="reveal" style="--i:0">
-            <article class="skill-cat card hud">
-              <div class="skill-cat-head"><span class="skill-cat-idx">01</span><h3>技能 Skill</h3></div>
-              <ul class="skill-cat-tags">
-                <li>SkillRegistry 注册中心</li><li>模型下载技能（内置）</li><li>启用 / 停用实时生效</li>
-              </ul>
-            </article>
-          </div>
-          <div class="reveal" style="--i:1">
-            <article class="skill-cat card hud">
-              <div class="skill-cat-head"><span class="skill-cat-idx">02</span><h3>插件 Plugin</h3></div>
-              <ul class="skill-cat-tags">
-                <li>本地插件池</li><li>社区发现与安装</li><li>卸载残留清理</li>
-              </ul>
-            </article>
-          </div>
-          <div class="reveal" style="--i:2">
-            <article class="skill-cat card hud">
-              <div class="skill-cat-head"><span class="skill-cat-idx">03</span><h3>MCP 工具</h3></div>
-              <ul class="skill-cat-tags">
-                <li>标准 MCP 协议</li><li>外部工具即插即用</li><li>与插件同池管理</li>
-              </ul>
-            </article>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===================== 工作台 ===================== -->
-    <section class="section" id="studio" aria-labelledby="studio-title">
-      <div class="container">
-        <div class="section-head reveal" style="--i:0">
-          <span class="eyebrow"><i>05</i>Live Studio</span>
-          <h2 class="section-title" id="studio-title">先玩玩看，再决定下载</h2>
-          <p class="section-desc">这是檀阁瑞木工作台的交互演示。聊天、蒸馏、成长、设置，全部可以动手试试。</p>
-        </div>
-
-        <div class="studio card reveal" style="--i:1">
-          <div class="window-bar" aria-hidden="true">
-            <div class="window-dots"><i></i><i></i><i></i></div>
-            <div class="window-title"><span class="pulse-dot pulse-dot--green" aria-hidden="true"></span> tangram · interactive demo</div>
-          </div>
-
-          <div class="studio-body">
-            <div class="studio-side" role="tablist" aria-label="工作台功能切换">
-              <button class="studio-tab" role="tab" aria-selected="true" data-tab="chat" id="tab-chat" aria-controls="panel-chat">
-                <svg class="tico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>聊天
-              </button>
-              <button class="studio-tab" role="tab" aria-selected="false" data-tab="train" id="tab-train" aria-controls="panel-train">
-                <svg class="tico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21l-8-4.5V7l8 4.5L20 7v9.5L12 21z"/><path d="M12 12V3M8 5l4-2 4 2"/></svg>蒸馏
-              </button>
-              <button class="studio-tab" role="tab" aria-selected="false" data-tab="growth" id="tab-growth" aria-controls="panel-growth">
-                <svg class="tico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16"/><path d="M8 15l4-5 3 3 4-6"/></svg>成长
-              </button>
-              <button class="studio-tab" role="tab" aria-selected="false" data-tab="settings" id="tab-settings" aria-controls="panel-settings">
-                <svg class="tico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>设置
-              </button>
-
-              <div class="studio-foot">
-                <b id="statClock">00:00</b> 已陪伴<br>今日已成长 <b id="statXp">+0</b> 经验
-              </div>
-            </div>
-
-            <div class="studio-main">
-              <!-- 聊天 -->
-              <div class="panel on" id="panel-chat" role="tabpanel" aria-labelledby="tab-chat">
-                <div class="chat-list" id="chatList" aria-live="polite">
-                  <div class="chat-msg ai"><span class="who">檀阁瑞木</span>你好呀，我是檀阁瑞木。试着跟我说点什么吧～</div>
-                </div>
-                <div class="chat-hints" role="group" aria-label="快捷问句">
-                  <button class="hint ripple" data-q="你好">你好</button>
-                  <button class="hint ripple" data-q="你叫什么名字">你叫什么</button>
-                  <button class="hint ripple" data-q="你会做什么">会做什么</button>
-                  <button class="hint ripple" data-q="你跑在什么模型上">什么模型</button>
-                  <button class="hint ripple" data-q="讲个笑话">讲个笑话</button>
-                  <button class="hint ripple" data-q="你的声音怎么样">你的声音</button>
-                </div>
-                <form class="chat-input-wrap" id="chatForm" autocomplete="off">
-                  <label class="visually-hidden" for="chatInput">输入聊天内容</label>
-                  <input class="chat-input" id="chatInput" type="text" placeholder="和檀阁瑞木说句话…" maxlength="80">
-                  <button class="chat-send ripple" type="submit" aria-label="发送">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-                  </button>
-                </form>
-              </div>
-
-              <!-- 蒸馏 -->
-              <div class="panel" id="panel-train" role="tabpanel" aria-labelledby="tab-train">
-                <div class="train-head">
-                  <div class="train-title">知识蒸馏演示<small>teachers → distiller · 优质对话沉淀为训练素材</small></div>
-                  <button class="train-btn ripple" id="trainBtn" type="button">开始蒸馏</button>
-                </div>
-                <div class="train-stats">
-                  <div class="tstat"><div class="k">Epoch</div><div class="v" id="trEpoch">0<small>/3</small></div></div>
-                  <div class="tstat"><div class="k">Loss</div><div class="v" id="trLoss">—</div></div>
-                  <div class="tstat"><div class="k">Samples</div><div class="v">128</div></div>
-                </div>
-                <div class="train-progress">
-                  <div class="tprog-head"><span>蒸馏进度</span><b id="trPct">0%</b></div>
-                  <div class="tprog-track"><div class="tprog-fill" id="trFill"></div></div>
-                </div>
-                <div class="train-log" id="trainLog" aria-live="polite">
-                  <div class="dim">[ready] 等待开始…</div>
-                  <div class="dim">[info] 素材: 128 条真实对话 · 序列长度 512</div>
-                  <div class="dim">[info] 教师模型打分 → 蒸馏 → 落盘训练集</div>
-                </div>
-              </div>
-
-              <!-- 成长 -->
-              <div class="panel" id="panel-growth" role="tabpanel" aria-labelledby="tab-growth">
-                <div class="growth-head">
-                  <div class="growth-lv"><span class="lvnum" id="lvNum">7</span><span class="lvtag" id="lvTitle">默契伙伴</span></div>
-                  <div class="growth-xp">
-                    <div class="xph"><span>经验值</span><b><span id="xpNow">420</span> / <span id="xpMax">600</span></b></div>
-                    <div class="xp-track"><div class="xp-fill" id="xpFill"></div></div>
-                  </div>
-                </div>
-                <div class="skills" id="skills">
-                  <div class="skill" data-skill="chat">
-                    <div class="sico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
-                    <div class="sname">对话力</div>
-                    <div class="sbar"><div class="sfill" style="width:72%"></div></div>
-                    <div class="slv">Lv. 7</div>
-                  </div>
-                  <div class="skill" data-skill="memory">
-                    <div class="sico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
-                    <div class="sname">记忆力</div>
-                    <div class="sbar"><div class="sfill" style="width:54%"></div></div>
-                    <div class="slv">Lv. 5</div>
-                  </div>
-                  <div class="skill" data-skill="empathy">
-                    <div class="sico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg></div>
-                    <div class="sname">共情力</div>
-                    <div class="sbar"><div class="sfill" style="width:38%"></div></div>
-                    <div class="slv">Lv. 3</div>
-                  </div>
-                </div>
-                <div class="growth-actions">
-                  <button class="growth-btn ripple" id="feedBtn" type="button">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.5 6.5L21 11l-6.5 2.5L12 20l-2.5-6.5L3 11l6.5-2.5z"/></svg>投喂一段对话
-                  </button>
-                  <button class="growth-btn ripple" id="resetGrowth" type="button">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 11-3-6.7"/><path d="M21 4v5h-5"/></svg>重置成长
-                  </button>
-                </div>
-              </div>
-
-              <!-- 设置 -->
-              <div class="panel" id="panel-settings" role="tabpanel" aria-labelledby="tab-settings">
-                <div class="settings-list">
-                  <div class="setting">
-                    <div class="setting-info"><h4>自动语音播报</h4><p>聊天结束后自动朗读檀阁瑞木的回复</p></div>
-                    <button class="switch" role="switch" aria-checked="true" data-key="tts"></button>
-                  </div>
-                  <div class="setting">
-                    <div class="setting-info"><h4>知识图谱记忆</h4><p>把对话做词共现统计，图谱越聊越密</p></div>
-                    <button class="switch" role="switch" aria-checked="true" data-key="memory"></button>
-                  </div>
-                  <div class="setting">
-                    <div class="setting-info"><h4>沙箱执行</h4><p>Agent 跑代码先进沙箱，带资源配额</p></div>
-                    <button class="switch" role="switch" aria-checked="true" data-key="desktop"></button>
-                  </div>
-                  <div class="setting">
-                    <div class="setting-info"><h4>默认人格</h4><p>每次启动时自动加载的人格与音色绑定</p></div>
-                    <select class="select" aria-label="默认人格" id="defaultModel">
-                      <option value="檀阁瑞木">檀阁瑞木</option><option value="Vivi">Vivi</option>
-                      <option value="QuQu">QuQu</option><option value="Imeris">Imeris</option>
-                      <option value="天依">天依</option>
-                    </select>
-                  </div>
-                  <div class="setting">
-                    <div class="setting-info"><h4>推理线程数</h4><p>影响响应速度与 CPU 占用</p></div>
-                    <select class="select" aria-label="推理线程数" id="threadsSel">
-                      <option>2 线程</option><option selected>4 线程</option>
-                      <option>6 线程</option><option>8 线程</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 语音波形 -->
-        <div class="voice card reveal" style="--i:2">
-          <div class="voice-top">
-            <div class="voice-info">
-              <h3>edge-tts 实时语音波形</h3>
-              <p>点右侧按钮，看檀阁瑞木用当前音色说一句话。22 个内置中文音色，语速音调逐人格可调。</p>
-              <div class="voice-meta">
-                <span class="tag" id="vVoice">zh-CN-Xiaoxiao</span>
-                <span class="tag" id="vRate">+0%</span>
-                <span class="tag" id="vPitch">+0Hz</span>
-                <span class="tag">24kHz</span>
-              </div>
-            </div>
-            <div class="voice-ctrl">
-              <button class="voice-play ripple" id="voicePlay" type="button" aria-label="播放语音波形">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-              </button>
-              <div class="voice-status" id="voiceStatus">待机 · <b>idle</b></div>
-            </div>
-          </div>
-          <canvas id="waveCanvas" width="2000" height="280" aria-hidden="true"></canvas>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===================== 架构 ===================== -->
-    <section class="section" id="arch" aria-labelledby="arch-title">
-      <div class="container">
-        <div class="section-head reveal" style="--i:0">
-          <span class="eyebrow"><i>06</i>Architecture</span>
-          <h2 class="section-title" id="arch-title">四层解耦，各司其职</h2>
-          <p class="section-desc">界面、契约、智能、数据分层隔离，任意一层都能独立替换与升级。</p>
-        </div>
-
-        <ol class="arch-list reveal" style="--i:1">
-          <li class="arch-item">
-            <article class="arch-card card">
-              <span class="arch-idx">01</span>
-              <div class="arch-main">
-                <h3>界面层 · Flutter UI</h3>
-                <p>TGA 设计系统驱动的 15 个功能页：对话 / 智能体 / 通道 / 作品 / 图谱 / 沙箱 / 商店 / 训练 / 插件……深浅双主题。</p>
-              </div>
-              <span class="arch-tag">flutter · 15 pages</span>
-            </article>
-          </li>
-          <li class="arch-item">
-            <article class="arch-card card">
-              <span class="arch-idx">02</span>
-              <div class="arch-main">
-                <h3>契约层 · Bridge Contract</h3>
-                <p>一份 bridge_contract.json 定义前后端全部契约：control / hot_path / multimodal / realtime_event / async_callback / distill / flak 共 24 项。</p>
-              </div>
-              <span class="arch-tag">contract · 24</span>
-            </article>
-          </li>
-          <li class="arch-item">
-            <article class="arch-card card">
-              <span class="arch-idx">03</span>
-              <div class="arch-main">
-                <h3>智能层 · Python Harness</h3>
-                <p>Agent 引擎、蒸馏（teachers → distiller）、工作痕迹、IM 网关与看门狗全部收敛在本地 harness / im 进程里。</p>
-              </div>
-              <span class="arch-tag">harness · im gateway</span>
-            </article>
-          </li>
-          <li class="arch-item">
-            <article class="arch-card card">
-              <span class="arch-idx">04</span>
-              <div class="arch-main">
-                <h3>数据层 · 本地存储</h3>
-                <p>人格、作品、图谱、GGUF 模型、训练素材全部落在本机目录，随时可备份，数据不出机。</p>
-              </div>
-              <span class="arch-tag">local-first</span>
-            </article>
-          </li>
-        </ol>
-      </div>
-    </section>
-
-    <!-- ===================== 成就 ===================== -->
-    <section class="section" id="achievements" aria-labelledby="ach-title">
-      <div class="container">
-        <div class="section-head reveal" style="--i:0">
-          <span class="eyebrow"><i>07</i>Achievements</span>
-          <h2 class="section-title" id="ach-title">陪她解锁这些成就</h2>
-          <p class="section-desc">每一个成就都对应一个真实的成长节点。试试多点几下，会亮的。</p>
-        </div>
-
-        <div class="grid ach-grid" id="achGrid">
-          <div class="reveal" style="--i:0"><div class="ach card locked" data-ach="first" data-need="1" tabindex="0"><div class="ach-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21v-7"/><path d="M12 14a4 4 0 00-4-4 4 4 0 004 4z"/><path d="M12 14a4.5 4.5 0 004.5-4.5A4.5 4.5 0 0012 14z"/></svg></div><div class="ach-name">初次相识</div><div class="ach-desc">完成第一次对话</div><div class="ach-prog"><i style="width:0%"></i></div></div></div>
-          <div class="reveal" style="--i:1"><div class="ach card locked" data-ach="chat10" data-need="10" tabindex="0"><div class="ach-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/><path d="M8 10h8M8 13h5"/></svg></div><div class="ach-name">聊得来了</div><div class="ach-desc">累计 10 轮对话</div><div class="ach-prog"><i style="width:0%"></i></div></div></div>
-          <div class="reveal" style="--i:2"><div class="ach card locked" data-ach="train" data-need="1" tabindex="0"><div class="ach-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3c0 6 14 6 14 12M19 3c0 6-14 6-14 12"/><path d="M7.5 6.5h9M6 10h12M6.5 14h11M8 17.5h8"/></svg></div><div class="ach-name">第一次蒸馏</div><div class="ach-desc">完整跑完一次蒸馏演示</div><div class="ach-prog"><i style="width:0%"></i></div></div></div>
-          <div class="reveal" style="--i:3"><div class="ach card locked" data-ach="lv10" data-need="1" tabindex="0"><div class="ach-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.6 5.6 6 .8-4.4 4.2 1.1 6L12 16.8 6.7 19.6l1.1-6L3.4 9.4l6-.8z"/></svg></div><div class="ach-name">默契伙伴</div><div class="ach-desc">成长等级达到 Lv.10</div><div class="ach-prog"><i style="width:0%"></i></div></div></div>
-          <div class="reveal" style="--i:4"><div class="ach card locked" data-ach="theme" data-need="1" tabindex="0"><div class="ach-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 100 18h1.6a2 2 0 001.6-3.2 2 2 0 011.6-3.2H19a3 3 0 003-3A9 9 0 0012 3z"/><circle cx="7.5" cy="11.5" r="1"/><circle cx="11" cy="7.5" r="1"/><circle cx="15.5" cy="8.5" r="1"/></svg></div><div class="ach-name">色彩玩家</div><div class="ach-desc">切换一次深浅主题</div><div class="ach-prog"><i style="width:0%"></i></div></div></div>
-          <div class="reveal" style="--i:5"><div class="ach card locked" data-ach="voice" data-need="1" tabindex="0"><div class="ach-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M19 10v1a7 7 0 01-14 0v-1"/><path d="M12 18v4"/></svg></div><div class="ach-name">听她说</div><div class="ach-desc">播放一次语音波形</div><div class="ach-prog"><i style="width:0%"></i></div></div></div>
-          <div class="reveal" style="--i:6"><div class="ach card locked" data-ach="cmdk" data-need="1" tabindex="0"><div class="ach-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h.01M18 14h.01M10 14h4"/></svg></div><div class="ach-name">键盘大师</div><div class="ach-desc">用一次命令面板</div><div class="ach-prog"><i style="width:0%"></i></div></div></div>
-          <div class="reveal" style="--i:7"><div class="ach card locked" data-ach="explore" data-need="5" tabindex="0"><div class="ach-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15.8 8.2l-2.2 5.4-5.4 2.2 2.2-5.4z"/></svg></div><div class="ach-name">四处看看</div><div class="ach-desc">浏览 5 个不同板块</div><div class="ach-prog"><i style="width:0%"></i></div></div></div>
-          <div class="reveal" style="--i:8"><div class="ach card locked" data-ach="share" data-need="1" tabindex="0"><div class="ach-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 5.6a5 5 0 00-7 0L12 7.4l-1.8-1.8a5 5 0 00-7 7l1.8 1.8L12 21l7-6.6 1.8-1.8a5 5 0 000-7z"/></svg></div><div class="ach-name">分享快乐</div><div class="ach-desc">把檀阁瑞木分享给朋友</div><div class="ach-prog"><i style="width:0%"></i></div></div></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===================== 路线图 ===================== -->
-    <section class="section" id="growth" aria-labelledby="growth-title">
-      <div class="container">
-        <div class="section-head reveal" style="--i:0">
-          <span class="eyebrow"><i>08</i>Roadmap</span>
-          <h2 class="section-title" id="growth-title">她正在长大</h2>
-          <p class="section-desc">从第一行代码到完整的数字生命，每一步都写在这里——已发生的和计划中的，分开标注。</p>
-        </div>
-
-        <ol class="timeline">
-          <li class="tl-item reveal" style="--i:0">
-            <article class="tl-card card">
-              <span class="tl-ver">起步</span>
-              <div class="tl-body"><h3>第一个可运行版本</h3><p>Flutter 界面 + Python Harness 打通，bridge 契约建立，GGUF 本地推理与 edge-tts 语音就位。</p></div>
-            </article>
-          </li>
-          <li class="tl-item reveal" style="--i:1">
-            <article class="tl-card card">
-              <span class="tl-ver">大版本</span>
-              <div class="tl-body"><h3>功能大版本 · IM 通道 · OTA</h3><p>App 内 OTA（SHA256 + RSA 清单签名校验）；QQ / 微信 / Telegram / WhatsApp 九适配器；插件社区、知识图谱、三沙箱、人格系统、公告 feed；全套 TGA 双主题设计系统。</p></div>
-            </article>
-          </li>
-          <li class="tl-item reveal" style="--i:2">
-            <article class="tl-card card now">
-              <span class="tl-ver">五平台</span>
-              <div class="tl-body"><h3>五平台新产物 · CI 全绿</h3><p>GitHub Actions 一键产出 Windows 单文件签名 exe、macOS dmg、Linux AppImage、Android apk、iOS ipa；旧版本用户经 OTA 自动升级到这一版。</p></div>
-            </article>
-          </li>
-          <li class="tl-item reveal" style="--i:3">
-            <article class="tl-card card plan">
-              <span class="tl-ver">计划</span>
-              <div class="tl-body"><h3>蒸馏训练闭环（计划）</h3><p>蒸馏素材自动进入训练集，本地微调热加载；语音唤醒与常驻聆听。</p></div>
-            </article>
-          </li>
-          <li class="tl-item reveal" style="--i:4">
-            <article class="tl-card card plan">
-              <span class="tl-ver">计划</span>
-              <div class="tl-body"><h3>插件市场与多 Agent 协作（计划）</h3><p>社区插件市场、多智能体分工协作、3D 虚拟形象（VRM）。</p></div>
-            </article>
-          </li>
-        </ol>
-      </div>
-    </section>
-
-    <!-- ===================== 下载 ===================== -->
-    <section class="section" id="download" aria-labelledby="download-title">
-      <div class="container">
-        <div class="section-head reveal" style="--i:0">
-          <span class="eyebrow"><i>09</i>Download</span>
-          <h2 class="section-title" id="download-title">全平台下载</h2>
-          <p class="section-desc">单文件优先，双击即开。所有依赖已内置，更新交给 OTA。</p>
-        </div>
-
-        <div class="grid dl-grid">
-          <div class="reveal" style="--i:0">
-            <article class="dl card">
-              <div class="dl-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.5L10.5 4.5V11.5H3V5.5M11.5 4.3L21 3V11.5H11.5V4.3M3 12.5H10.5V19.5L3 18.5V12.5M11.5 12.5H21V21L11.5 19.7V12.5Z"/></svg></div>
-              <h3>Windows</h3>
-              <div class="size">约 50 MB · .exe 单文件便携版</div>
-              <a href="/dl/windows" class="dl-btn ripple" rel="noopener">高速下载</a>
-              <a href="https://github.com/3477856804/tangram-agent-releases/releases/latest/download/tangram-windows-x64.exe" class="dl-src" rel="noopener">GitHub 直链</a>
-            </article>
-          </div>
-          <div class="reveal" style="--i:1">
-            <article class="dl card">
-              <div class="dl-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z"/></svg></div>
-              <h3>Linux</h3>
-              <div class="size">约 95 MB · .AppImage 单文件</div>
-              <a href="/dl/linux" class="dl-btn ripple" rel="noopener">高速下载</a>
-              <a href="https://github.com/3477856804/tangram-agent-releases/releases/latest/download/tangram-linux-x64.AppImage" class="dl-src" rel="noopener">GitHub 直链</a>
-            </article>
-          </div>
-          <div class="reveal" style="--i:2">
-            <article class="dl card">
-              <div class="dl-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M18.7 12.8c0-3 2.5-4.5 2.6-4.6-1.4-2.1-3.6-2.4-4.4-2.4-1.9-.2-3.6 1.1-4.6 1.1-1 0-2.4-1.1-4-1-2 0-3.9 1.2-4.9 3-2.1 3.6-.5 9 1.5 12 .9 1.3 2 2.8 3.4 2.7 1.4-.1 1.9-.9 3.5-.9s2.1.9 3.5.9c1.4 0 2.4-1.3 3.3-2.7 1-1.5 1.4-3 1.4-3.1-.1 0-2.8-1.1-2.8-4.1z"/></svg></div>
-              <h3>macOS</h3>
-              <div class="size">约 120 MB · .dmg（Apple Silicon）</div>
-              <a href="/dl/macos" class="dl-btn ripple" rel="noopener">高速下载</a>
-              <a href="https://github.com/3477856804/tangram-agent-releases/releases/latest/download/tangram-macos-arm64.dmg" class="dl-src" rel="noopener">GitHub 直链</a>
-            </article>
-          </div>
-          <div class="reveal" style="--i:3">
-            <article class="dl card">
-              <div class="dl-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85-.29-.15-.65-.06-.83.22l-1.88 3.24c-2.86-1.21-6.08-1.21-8.94 0L5.65 5.67c-.19-.29-.58-.38-.87-.2-.28.18-.37.54-.22.83L6.4 9.48C3.3 11.25 1.28 14.44 1 18h22c-.28-3.56-2.3-6.75-5.4-8.52M7 15.25c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25 1.25.56 1.25 1.25-.56 1.25-1.25 1.25m10 0c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25 1.25.56 1.25 1.25-.56 1.25-1.25 1.25"/></svg></div>
-              <h3>Android</h3>
-              <div class="size">约 46 MB · .apk（arm64 · 支持 OTA）</div>
-              <a href="/dl/android" class="dl-btn ripple" rel="noopener">高速下载</a>
-              <a href="https://github.com/3477856804/tangram-agent-releases/releases/latest/download/tangram-android-arm64.apk" class="dl-src" rel="noopener">GitHub 直链</a>
-            </article>
-          </div>
-          <div class="reveal" style="--i:4">
-            <article class="dl card">
-              <div class="dl-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M16.4 12.9c0-2.1 1.7-3.1 1.8-3.2-1-1.4-2.5-1.6-3-1.7-1.3-.1-2.5.8-3.2.8-.7 0-1.7-.8-2.8-.7-1.4 0-2.7.8-3.5 2.1-1.5 2.6-.4 6.4 1.1 8.5.7 1 1.5 2.1 2.5 2.1 1-.1 1.4-.7 2.5-.7s1.5.7 2.5.7 1.8-1 2.4-2c.8-1.1 1.1-2.2 1.1-2.3 0 0-2-.8-2-2.8zM14.6 6.3c.5-.7.9-1.6.8-2.6-.8 0-1.7.5-2.3 1.2-.5.6-.9 1.6-.8 2.5.9.1 1.8-.4 2.3-1.1z"/></svg></div>
-              <h3>iOS</h3>
-              <div class="size">约 60 MB · .ipa（未签名 · 需自签）</div>
-              <a href="/dl/ios" class="dl-btn ripple" rel="noopener">高速下载</a>
-              <a href="https://github.com/3477856804/tangram-agent-releases/releases/latest/download/tangram-ios-arm64-unsigned.ipa" class="dl-src" rel="noopener">GitHub 直链</a>
-            </article>
-          </div>
-        </div>
-
-        <p class="dl-note reveal" style="--i:5">Windows 为单文件便携版，双击即运行；macOS 采用 ad-hoc 签名，首跑请右键 →「打开」。iOS 包未签名，需 AltStore / 自签工具安装。全部构建由 GitHub Actions 自动产出，SHA256 校验清单见 <a href="https://github.com/3477856804/tangram-agent-releases/releases" rel="noopener" style="color:inherit;text-decoration:underline">Release 页面</a>。</p>
-      </div>
-    </section>
-
-    <!-- ===================== FAQ ===================== -->
-    <section class="section" id="faq" aria-labelledby="faq-title">
-      <div class="container">
-        <div class="section-head reveal" style="--i:0">
-          <span class="eyebrow"><i>10</i>FAQ</span>
-          <h2 class="section-title" id="faq-title">你可能想问</h2>
-          <p class="section-desc">关于檀阁瑞木最常见的几个问题。</p>
-        </div>
-
-        <div class="faq-list">
-          <details class="faq-item card reveal" style="--i:0"><summary>推理需要联网吗？</summary><div class="faq-body">模型推理、语音合成、数据存储全部在本机完成，断网也能聊天。需要联网的只有三件事：IM 通道收发消息、OTA 检查更新、以及从模型商店下载 GGUF 模型。</div></details>
-          <details class="faq-item card reveal" style="--i:1"><summary>我的电脑配置能跑得动吗？</summary><div class="faq-body">GGUF 量化模型纯 CPU 就能跑：8GB 内存建议 0.5B–1.5B 小模型，16GB 可上 3B 量化。模型商店会探测你的磁盘与内存，推荐合适的量化尺寸，下载失败自动重试。</div></details>
-          <details class="faq-item card reveal" style="--i:2"><summary>QQ / 微信是怎么接进来的？</summary><div class="faq-body">每个平台都有多条路：QQ 支持官方 OpenAPI 与 OneBot（NapCat）扫码桥接，微信支持 ilink 扫码、公众号 API 与协议直连，Telegram 用 Bot Token，WhatsApp 走 Baileys 扫码桥。App 内「通道」页扫码即可登录，网关带看门狗自动重连。</div></details>
-          <details class="faq-item card reveal" style="--i:3"><summary>OTA 更新安全吗？</summary><div class="faq-body">更新清单由发布私钥做 RSA 签名，App 校验 SHA256 与签名双通过才安装；Android 调起系统安装器覆盖安装，桌面端由更新脚本完成替换与重启。Windows 安装包与安卓 APK 用的是同一把 RSA 私钥。</div></details>
-          <details class="faq-item card reveal" style="--i:4"><summary>Windows 提示 SmartScreen 怎么办？</summary><div class="faq-body">安装包已用发布私钥做 Authenticode 自签名，但自签根证书不在微软信任链里，首次运行会弹提示：点「更多信息」→「仍要运行」即可。校验 SHA256 清单可确认文件未被篡改。</div></details>
-          <details class="faq-item card reveal" style="--i:5"><summary>我可以自己写插件吗？</summary><div class="faq-body">可以。技能 / 插件 / MCP 工具三类扩展共用一个注册中心：插件就是一个实现了约定接口的 Python 文件，放进本地池即可被发现、安装、启停。源码仓库公开，欢迎提 PR。</div></details>
-          <details class="faq-item card reveal" style="--i:6"><summary>代码是开源的吗？</summary><div class="faq-body">源码仓库公开可查（GitHub: tangram-agent），软件版权归 Cosmo 保留所有权利；产物仓库公开全部安装包与校验清单。</div></details>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===================== 社区 ===================== -->
-    <section class="section community" id="qq" aria-labelledby="qq-title">
-      <div class="container">
-        <div class="section-head reveal" style="--i:0">
-          <span class="eyebrow eyebrow--gold"><i>11</i>Community</span>
-          <h2 class="section-title" id="qq-title">加入 QQ 交流群</h2>
-          <img src="assets/qq.svg" alt="QQ群二维码" width="150" height="150" style="display:block;margin:1rem auto;">
-          <p class="section-desc">和其他用户一起聊檀阁瑞木、提建议、晒配置、催更新。</p>
-        </div>
-
-        <div class="community-card reveal" style="--i:1">
-          <p class="community-note">扫码加入檀阁瑞木官方交流群 · 源码仓库 github.com/3477856804/tangram-agent</p>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- ===================== 页脚 ===================== -->
-  <footer class="footer">
-    <div class="container">
-      <div class="footer-top">
-        <div>
-          <div class="footer-brand">
-            <span class="footer-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><g transform='translate(16 16) scale(.84) translate(-16 -16)'><rect x='0' y='0' width='16' height='16' fill='currentColor'/><g fill='currentColor' opacity='0.4'><path d='M16 0 L32 0 L16 16 Z'/><path d='M32 0 L32 16 L16 16 Z'/><path d='M32 16 L32 32 L16 16 Z'/><path d='M32 32 L16 32 L16 16 Z'/><path d='M16 32 L0 32 L16 16 Z'/><path d='M0 32 L0 16 L16 16 Z'/></g></g></svg></span>
-            <span class="footer-brand-text"><strong>TANGRAM</strong><em>檀阁瑞木</em></span>
-          </div>
-          <p class="footer-tagline">七块基本图形，无穷种拼法 —— 用 Harness 把抽象的 Model 拼装、落地成切实可见的成果</p>
-        </div>
-        <nav class="footer-links" aria-label="页脚导航">
-          <a href="#news">动态</a>
-          <a href="#features">功能</a>
-          <a href="#channels">通道</a>
-          <a href="#studio">工作台</a>
-          <a href="#arch">架构</a>
-          <a href="#download">下载</a>
-        </nav>
-      </div>
-      <div class="footer-bottom">
-        <span>© 2026 檀阁瑞木 TANGRAM · 保留所有权利</span>
-        <span class="mono">latest · local-first · offline-capable</span>
-      </div>
-    </div>
-  </footer>
-</div>
-
-<!-- ===================== 悬浮：音景播放器 ===================== -->
-<div class="player" id="player" data-state="idle">
-  <button class="player-btn ripple" id="playerBtn" type="button" aria-label="播放音景">
-    <svg id="playerIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-  </button>
-  <div class="player-info">
-    <div class="player-title">桌面音景 · Lo-Fi</div>
-    <div class="player-sub" id="playerSub">点击播放音景</div>
-  </div>
-  <button class="player-mute" id="playerMute" type="button" aria-label="静音" aria-pressed="false">
-    <svg id="muteIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 010 7"/><path d="M18.5 5.5a9 9 0 010 13"/></svg>
-  </button>
-  <div class="player-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
-  <div class="player-progress"><i id="playerProgressBar"></i></div>
-</div>
-
-<!-- ===================== 音景提示 ===================== -->
-<div class="toast" id="toast" role="status" aria-live="polite" hidden>
-  <span class="toast-icon" aria-hidden="true">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-  </span>
-  <span id="toastText">点击页面任意处，开启桌面音景</span>
-</div>
-
-<!-- ===================== 悬浮：快捷操作 ===================== -->
-<div class="fab-bar">
-  <div class="fab-items" id="fabItems">
-    <button class="fab-item" type="button" data-fab="studio"><span class="fab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/></svg></span>工作台</button>
-    <button class="fab-item" type="button" data-fab="signin"><span class="fab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>每日签到</button>
-    <button class="fab-item" type="button" data-fab="theme"><span class="fab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg></span>切换主题</button>
-    <button class="fab-item" type="button" data-fab="cmdk"><span class="fab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>命令面板</button>
-    <button class="fab-item" type="button" data-fab="top"><span class="fab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></span>回到顶部</button>
-  </div>
-  <button class="fab ripple" id="fabMain" type="button" aria-label="打开快捷操作" aria-expanded="false">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-  </button>
-</div>
-
-<!-- ===================== 每日签到 ===================== -->
-<div class="overlay" id="signin" role="dialog" aria-modal="true" aria-label="每日签到" aria-hidden="true">
-  <div class="overlay-box">
-    <span class="overlay-emoji" aria-hidden="true">🌸</span>
-    <h3>每日签到</h3>
-    <p>每天来看看檀阁瑞木，她会记得你。</p>
-    <div class="signin-rewards">
-      <div class="signin-reward"><div class="rv">+30</div><div class="rk">经验</div></div>
-      <div class="signin-reward"><div class="rv">+5</div><div class="rk">对话力</div></div>
-    </div>
-    <button class="signin-btn ripple" id="signinBtn" type="button">领取今日奖励</button>
-  </div>
-</div>
-
-<!-- ===================== 命令面板 ===================== -->
-<div class="overlay cmdk" id="cmdk" role="dialog" aria-modal="true" aria-label="命令面板" aria-hidden="true">
-  <div class="cmdk-box">
-    <input class="cmdk-input" id="cmdkInput" type="text" placeholder="搜索命令、板块或功能…" aria-label="搜索命令" autocomplete="off">
-    <div class="cmdk-list" id="cmdkList"></div>
-    <div class="cmdk-foot">
-      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
-      <span><kbd>Enter</kbd> 执行</span>
-      <span><kbd>Esc</kbd> 关闭</span>
+    <div class="head-actions">
+      <button class="theme-btn" id="themeToggle" type="button" aria-label="切换深浅主题" aria-pressed="false" title="切换深浅主题">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4L17 7M7 17l-1.6 1.6"/></svg>
+      </button>
+      <a class="head-download" href="#download">下载</a>
+      <button class="menu-btn" id="menuBtn" type="button" aria-label="打开导航" aria-expanded="false" aria-controls="nav">
+        <span></span><span></span>
+      </button>
     </div>
   </div>
-</div>
+</header>
 
-<audio id="bgm" loop preload="metadata" src="assets/l.mp3"></audio>
+<main id="main">
+
+  <!-- ============ 首屏 ============ -->
+  <section class="hero" id="top">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow">本地运行的 AI 工作台 <span class="sep">/</span> 五个平台</p>
+        <h1>把 AI 装进<br>自己的电脑<span class="period">。</span></h1>
+        <p class="lede">模型、对话、记忆和工作痕迹都留在你的设备上。它有一台真实的 Linux 沙箱，能装依赖、跑命令、把跑出来的结果交给你，而不是只在聊天框里演示一遍。</p>
+        <div class="hero-cta">
+          <a class="btn-solid" href="#download">下载最新版 <span aria-hidden="true">→</span></a>
+          <a class="btn-text" href="#capabilities">先看看它能做什么</a>
+        </div>
+        <dl class="hero-facts">
+          <div><dt>推理</dt><dd>在本机完成，断网可用</dd></div>
+          <div><dt>数据</dt><dd>不上传，留在设备里</dd></div>
+          <div><dt>平台</dt><dd>桌面、手机，共五个</dd></div>
+        </dl>
+      </div>
+      <figure class="hero-fig">
+        <img src="assets/photos/desk-code.webp" alt="明亮的工作台上，一台笔记本电脑屏幕里显示着代码" width="1800" height="1198" fetchpriority="high">
+        <figcaption>真实工作台实拍 <span class="sep">·</span> 图片来源 Unsplash</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============ 整幅照片 ============ -->
+  <section class="band" aria-label="关于这台工作台">
+    <figure class="band-fig">
+      <img src="assets/photos/terminal.webp" alt="安静的房间里，桌面上的电脑屏幕显示着终端与代码，窗外光线落在墙上" width="1600" height="900" loading="lazy">
+      <figcaption>图片来源 Unsplash</figcaption>
+    </figure>
+    <div class="wrap band-quote">
+      <p>它不是又一个聊天窗口。<br>是一台你自己的 Linux 电脑，只是刚好会说话。</p>
+    </div>
+  </section>
+
+  <!-- ============ 写在前面 ============ -->
+  <section class="section" id="about">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="sec-no">01</span>
+        <h2>写在前面</h2>
+        <span class="sec-en">Why it exists</span>
+      </div>
+      <div class="about-grid">
+        <div class="about-text">
+          <p class="drop">大多数 AI 工具把你的问题送到别人的服务器上，再把答案送回来。中间发生了什么、数据被留在哪儿，你既看不见也管不着。</p>
+          <p>檀阁瑞木换了个做法：把模型放到你的设备上跑。端侧 GGUF 纯 CPU 就能推理，聊天内容、记忆、文件、工作痕迹都写在本机磁盘。需要联网的只有三件事——收发消息、检查更新、下载新模型。</p>
+          <p>它也不满足于"给建议"。内置的真实 Linux 沙箱让模型能自己装依赖、跑脚本、读文件、看输出，再把结果放回对话里。跑失败了会如实告诉你，不会编一段看起来像成功的话。</p>
+          <p class="sign">— 开发笔记，<span class="date" id="buildDateInline">最近一次构建</span></p>
+        </div>
+        <figure class="about-fig">
+          <img src="assets/photos/workspace.webp" alt="落地窗旁的安静工作空间，绿植与一台笔记本电脑" width="1400" height="935" loading="lazy">
+          <figcaption>图片来源 Unsplash</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 能力 ============ -->
+  <section class="section section-alt" id="capabilities">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="sec-no">02</span>
+        <h2>它能做什么</h2>
+        <span class="sec-en">What it does</span>
+      </div>
+
+      <article class="cap-row">
+        <div class="cap-body">
+          <span class="cap-no">01</span>
+          <h3>模型在你机器上跑</h3>
+          <p>端侧 GGUF 量化模型，纯 CPU 也能推理。没有密钥、没有账号、没有额度，断网照样能对话。模型商店会按你设备的实际内存，推荐跑得动的量化规格。</p>
+        </div>
+        <figure class="cap-fig">
+          <img src="assets/photos/code-close.webp" alt="屏幕上代码编辑器的近距离实拍" width="1400" height="935" loading="lazy">
+          <figcaption>图片来源 Unsplash</figcaption>
+        </figure>
+      </article>
+
+      <article class="cap-row cap-row--flip">
+        <div class="cap-body">
+          <span class="cap-no">02</span>
+          <h3>一台真能干活的 Linux</h3>
+          <p>模型可以直接在沙箱里执行命令、安装依赖、编译脚本、读写文件，输出和退出码如实回显。SSH 远端、Debian 用户态、系统 shell 按环境分流，不是模拟出来的命令行。</p>
+        </div>
+        <figure class="cap-fig">
+          <img src="assets/photos/typing.webp" alt="双手在笔记本电脑键盘上打字的特写" width="1600" height="1065" loading="lazy">
+          <figcaption>图片来源 Unsplash</figcaption>
+        </figure>
+      </article>
+
+      <article class="cap-row">
+        <div class="cap-body">
+          <span class="cap-no">03</span>
+          <h3>记得住你说过的话</h3>
+          <p>完整的多轮上下文加上跨会话的持久记忆。聊过的项目、定过的口径、你的偏好会留在本机，下次打开接着用，不用从头再讲一遍。</p>
+        </div>
+        <figure class="cap-fig">
+          <img src="assets/photos/macbook.webp" alt="木质桌面上摊开的一台笔记本电脑，旁边有一小盆植物" width="1400" height="933" loading="lazy">
+          <figcaption>图片来源 Unsplash</figcaption>
+        </figure>
+      </article>
+
+      <article class="cap-row cap-row--flip">
+        <div class="cap-body">
+          <span class="cap-no">04</span>
+          <h3>桌面、手机，还有你常聊的地方</h3>
+          <p>Windows、macOS、Linux、Android、iOS 五个平台，同一套数据与能力。QQ、微信等通道也能接进来，从哪个入口找到它都行。技能、插件、MCP 工具共用一个注册中心。</p>
+        </div>
+        <figure class="cap-fig">
+          <img src="assets/photos/people.webp" alt="几个人围坐在一起，看着笔记本电脑讨论，气氛轻松" width="1400" height="933" loading="lazy">
+          <figcaption>图片来源 Unsplash</figcaption>
+        </figure>
+      </article>
+    </div>
+  </section>
+
+  <!-- ============ 下载 ============ -->
+  <section class="section" id="download">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="sec-no">03</span>
+        <h2>下载</h2>
+        <span class="sec-en">Get the app</span>
+      </div>
+      <div class="dl-intro">
+        <p class="dl-lead">下面的链接永远指向最新一次构建，<strong>点开就是最新版</strong>，不用挑版本号。App 内会自动检查并覆盖更新，原有数据保留。</p>
+        <p class="dl-sub" id="buildMeta">正在读取最近一次构建信息…</p>
+      </div>
+
+      <div class="dl-table" role="table" aria-label="各平台安装包下载">
+        <div class="dl-row dl-row--head" role="row">
+          <span role="columnheader">平台</span>
+          <span role="columnheader">格式</span>
+          <span role="columnheader">大小</span>
+          <span role="columnheader">下载</span>
+        </div>
+        <div class="dl-row" role="row" data-asset="tangram-windows-x64.exe">
+          <span class="dl-os" role="cell">Windows</span>
+          <span class="dl-fmt" role="cell">.exe 单文件便携版</span>
+          <span class="dl-size" role="cell" data-size>—</span>
+          <span class="dl-links" role="cell">
+            <a class="dl-primary" href="/dl/windows">下载 <span aria-hidden="true">↓</span></a>
+            <a class="dl-alt" href="https://github.com/3477856804/tangram-agent-releases/releases/latest/download/tangram-windows-x64.exe" rel="noopener">直链</a>
+          </span>
+        </div>
+        <div class="dl-row" role="row" data-asset="tangram-macos-arm64.dmg">
+          <span class="dl-os" role="cell">macOS</span>
+          <span class="dl-fmt" role="cell">.dmg · Apple Silicon</span>
+          <span class="dl-size" role="cell" data-size>—</span>
+          <span class="dl-links" role="cell">
+            <a class="dl-primary" href="/dl/macos">下载 <span aria-hidden="true">↓</span></a>
+            <a class="dl-alt" href="https://github.com/3477856804/tangram-agent-releases/releases/latest/download/tangram-macos-arm64.dmg" rel="noopener">直链</a>
+          </span>
+        </div>
+        <div class="dl-row" role="row" data-asset="tangram-linux-x64.AppImage">
+          <span class="dl-os" role="cell">Linux</span>
+          <span class="dl-fmt" role="cell">.AppImage 单文件</span>
+          <span class="dl-size" role="cell" data-size>—</span>
+          <span class="dl-links" role="cell">
+            <a class="dl-primary" href="/dl/linux">下载 <span aria-hidden="true">↓</span></a>
+            <a class="dl-alt" href="https://github.com/3477856804/tangram-agent-releases/releases/latest/download/tangram-linux-x64.AppImage" rel="noopener">直链</a>
+          </span>
+        </div>
+        <div class="dl-row" role="row" data-asset="tangram-android-arm64.apk">
+          <span class="dl-os" role="cell">Android</span>
+          <span class="dl-fmt" role="cell">.apk · arm64 · 支持 OTA</span>
+          <span class="dl-size" role="cell" data-size>—</span>
+          <span class="dl-links" role="cell">
+            <a class="dl-primary" href="/dl/android">下载 <span aria-hidden="true">↓</span></a>
+            <a class="dl-alt" href="https://github.com/3477856804/tangram-agent-releases/releases/latest/download/tangram-android-arm64.apk" rel="noopener">直链</a>
+          </span>
+        </div>
+        <div class="dl-row" role="row" data-asset="tangram-ios-arm64-unsigned.ipa">
+          <span class="dl-os" role="cell">iOS</span>
+          <span class="dl-fmt" role="cell">.ipa · 未签名，需自签</span>
+          <span class="dl-size" role="cell" data-size>—</span>
+          <span class="dl-links" role="cell">
+            <a class="dl-primary" href="/dl/ios">下载 <span aria-hidden="true">↓</span></a>
+            <a class="dl-alt" href="https://github.com/3477856804/tangram-agent-releases/releases/latest/download/tangram-ios-arm64-unsigned.ipa" rel="noopener">直链</a>
+          </span>
+        </div>
+      </div>
+
+      <p class="dl-note">Windows 双击即运行；macOS 首次打开请右键选择「打开」；iOS 包未签名，需 AltStore 或自签工具安装。安装包完整性由 App 内自动校验。</p>
+
+      <div class="update-note">
+        <span class="update-label">更新公告</span>
+        <p class="update-text">已修复已知问题</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 常见问题 ============ -->
+  <section class="section section-alt" id="faq">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="sec-no">04</span>
+        <h2>常见问题</h2>
+        <span class="sec-en">Questions</span>
+      </div>
+      <div class="faq-list">
+        <details>
+          <summary>用的时候需要联网吗？</summary>
+          <p>推理、语音和存储都在本机完成，断网也能对话。需要联网的只有三件事：IM 通道收发消息、检查更新、从模型商店下载 GGUF 模型。</p>
+        </details>
+        <details>
+          <summary>我的电脑跑得动吗？</summary>
+          <p>端侧 GGUF 量化模型纯 CPU 即可运行。模型商店会读取设备实际内存，推荐能跑得动的量化规格；内存较小的设备建议选小参数模型。</p>
+        </details>
+        <details>
+          <summary>怎么更新？会不会丢数据？</summary>
+          <p>App 内会自动检查更新，下载完成后调起安装覆盖，聊天记录、记忆和作品都保留。官网下载链接同样始终指向最新构建。</p>
+        </details>
+        <details>
+          <summary>我的数据存在哪里？</summary>
+          <p>全部在本机磁盘。对话、长期记忆、工作痕迹和模型文件都不上传，卸载应用即可一并清除。</p>
+        </details>
+        <details>
+          <summary>源代码开放吗？</summary>
+          <p>软件为闭源。这个公开仓库只存放各平台安装包与官网静态资源，不包含任何应用源代码。</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 社区 ============ -->
+  <section class="section community" id="community">
+    <div class="wrap community-grid">
+      <div>
+        <div class="sec-head sec-head--plain">
+          <span class="sec-no">05</span>
+          <h2>一起聊聊</h2>
+          <span class="sec-en">Community</span>
+        </div>
+        <p class="community-text">遇到问题、想提建议，或者只是想看看别人怎么用它，欢迎扫码加入 QQ 交流群。</p>
+        <p class="community-link"><a href="https://github.com/3477856804/tangram-agent-releases" rel="noopener">GitHub 产物仓库 <span aria-hidden="true">↗</span></a></p>
+      </div>
+      <figure class="qr-fig">
+        <img src="assets/qq.svg" alt="QQ 交流群二维码" width="180" height="180" loading="lazy">
+        <figcaption>QQ 交流群</figcaption>
+      </figure>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ 页脚 ============ -->
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="foot-top">
+      <div class="foot-brand">
+        <img src="assets/t.svg" alt="" width="26" height="26">
+        <span>檀阁瑞木 <span class="brand-latin">TANGRAM</span></span>
+      </div>
+      <p class="foot-line">七块基本图形，无穷种拼法。工具该留在你手边，而不是把你带到别处。</p>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 檀阁瑞木 TANGRAM · 保留所有权利</span>
+      <span class="foot-credit">页面实拍照片来源 <a href="https://unsplash.com" rel="noopener">Unsplash</a> · 本仓库不含应用源码</span>
+    </div>
+  </div>
+</footer>
 
 <script src="app.js"></script>
 </body>
