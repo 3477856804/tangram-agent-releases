@@ -9,9 +9,8 @@ const FILES = {
 const BASE = 'https://github.com/3477856804/tangram-agent-releases/releases/download/v0.0.2/';
 const MIRRORS = ['https://gh-proxy.com/', 'https://ghproxy.net/'];
 
-export const onRequest = async (context) => {
-  const path = new URL(context.request.url).pathname; // /dl/windows
-  const platform = path.split('/dl/')[1] || '';
+export const onRequestGet = async (context) => {
+  const platform = context.params.platform;
   const file = FILES[platform];
   if (!file) return new Response('unknown platform', { status: 404 });
   const direct = BASE + file;
