@@ -181,8 +181,7 @@ figcaption { font-family: var(--mono); font-size: 10.5px; letter-spacing: .04em;
 /* ---------- 社区 ---------- */
 .community { border-bottom: 0; }
 .community-grid { display: grid; grid-template-columns: 1fr auto; gap: 60px; align-items: center; }
-.community-text { font-size: 16px; line-height: 2; color: var(--ink-soft); max-width: 540px; margin: 0 0 20px; }
-.community-link a { font-size: 14px; color: var(--accent-ink); text-decoration: none; border-bottom: 1px solid var(--accent); padding-bottom: 2px; }
+.community-text { font-size: 16px; line-height: 2; color: var(--ink-soft); max-width: 540px; margin: 0; }
 .qr-fig { text-align: center; }
 .qr-fig img { width: 168px; height: 168px; margin: 0 auto; background: #fff; padding: 8px; border: 1px solid var(--line); }
 .qr-fig figcaption { text-align: center; margin-top: 12px; }
